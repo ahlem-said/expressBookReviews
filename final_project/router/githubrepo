@@ -1,0 +1,10 @@
+Command:
+
+curl -UseBasicParsing https://api.github.com/repos/ahlem-said/expressBookReviews | ConvertFrom-Json | Select-Object full_name,fork,parent
+
+
+Output:
+
+full_name : ahlem-said/expressBookReviews
+fork      : True
+parent    : @{full_name=ibm-developer-skills-network/expressBookReviews}
