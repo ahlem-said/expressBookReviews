@@ -10,33 +10,28 @@ const users = [];
 const booksURL = "http://localhost:5000";
 
 // Register User
+const app = express();   // ✅ créer app avant de l'utiliser
 
-general.post("/register",(req,res)=>{
+// Middleware JSON
+app.use(express.json());
 
+general.post("/login",(req,res)=>{
 
-    const username=req.body.username;
-    const password=req.body.password;
+    const {username,password}=req.body;
 
+    const user = users.find(
+        u => u.username === username && u.password === password
+    );
 
-    if(!username || !password){
-
-        return res.status(400).json({
-            message:"Username and password required"
+    if(!user){
+        return res.status(401).json({
+            message:"Invalid username or password"
         });
-
     }
 
-
-    users.push({
-        username,
-        password
-    });
-
-
     res.status(200).json({
-        message:"User registered successfully"
+        message:"Login successful"
     });
-
 
 });
 
@@ -312,8 +307,165 @@ general.post("/register",(req,res)=>{
 
 
 });
+// ===============================
+// Add Review
+// ===============================
+
+general.post("/books/review/:id", (req, res) => {
+
+    const id = req.params.id;
+
+    const { username, review } = req.body;
+
+    const book = books[id];
+
+    if(!book){
+        return res.status(404).json({
+            message: "Book not found"
+        });
+    }
+
+    if(!username || !review){
+        return res.status(400).json({
+            message: "Username and review are required"
+        });
+    }
+
+if (!Array.isArray(book.reviews)) {
+    book.reviews = [];
+}
+
+book.reviews.push({
+    username: username,
+    review: review
+});
+
+    res.status(200).json({
+        message: "Review added successfully",
+        reviews: book.reviews
+    });
+
+});
 
 
 
+// ===============================
+// Modify Review
+// ===============================
+
+general.put("/books/review/:id", (req, res) => {
+
+    const id = req.params.id;
+
+    const { username, review } = req.body;
+
+    const book = books[id];
+
+
+    if(!book){
+        return res.status(404).json({
+            message: "Book not found"
+        });
+    }
+
+
+    if(!book.reviews){
+        return res.status(404).json({
+            message: "No reviews found"
+        });
+    }
+
+
+    const userReview = book.reviews.find(
+        r => r.username === username
+    );
+
+
+    if(!userReview){
+        return res.status(404).json({
+            message: "Review not found for this user"
+        });
+    }
+
+
+    userReview.review = review;
+
+
+    res.status(200).json({
+        message: "Review updated successfully",
+        reviews: book.reviews
+    });
+
+});
+// ===============================
+// Delete Review
+// ===============================
+
+general.delete("/books/review/:id", (req, res) => {
+
+    const id = req.params.id;
+
+    const { username } = req.body;
+
+    const book = books[id];
+
+
+    if (!book) {
+        return res.status(404).json({
+            message: "Book not found"
+        });
+    }
+
+
+    if (!Array.isArray(book.reviews)) {
+        return res.status(404).json({
+            message: "No reviews found"
+        });
+    }
+
+
+    const reviewIndex = book.reviews.findIndex(
+        r => r.username === username
+    );
+
+
+    if (reviewIndex === -1) {
+        return res.status(404).json({
+            message: "Review not found"
+        });
+    }
+
+
+    book.reviews.splice(reviewIndex, 1);
+
+
+    res.status(200).json({
+        message: "Review deleted successfully",
+        reviews: book.reviews
+    });
+
+});
+// ===============================
+// View Book Reviews
+// ===============================
+
+general.get("/books/review/:id", (req, res) => {
+
+    const id = req.params.id;
+
+    const book = books[id];
+
+    if (!book) {
+        return res.status(404).json({
+            message: "Book not found"
+        });
+    }
+
+    res.status(200).json({
+        title: book.title,
+        reviews: Array.isArray(book.reviews) ? book.reviews : []
+    });
+
+});
 module.exports.general = general;
 module.exports.users = users;

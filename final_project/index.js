@@ -5,14 +5,12 @@ const jwt = require('jsonwebtoken');
 const customer_routes = require('./router/auth_users.js').authenticated;
 const genl_routes = require('./router/general.js').general;
 
-const app = express();
+const app = express();   // ✅ créer app avant de l'utiliser
 
-
-// Middleware to read JSON body
+// Middleware JSON
 app.use(express.json());
 
-
-// Session configuration for customer routes
+// Session configuration
 app.use(
     "/customer",
     session({
@@ -22,8 +20,7 @@ app.use(
     })
 );
 
-
-// Authentication middleware for protected routes
+// Authentication middleware
 app.use("/customer/auth/*", function auth(req, res, next) {
 
     if (req.session.authorization) {
@@ -40,29 +37,20 @@ app.use("/customer/auth/*", function auth(req, res, next) {
 
             req.user = decoded;
             next();
-
         });
 
     } else {
-
         return res.status(401).json({
             message: "User not logged in"
         });
-
     }
-
 });
 
-
-// Routes for registered users
+// Routes
 app.use("/customer", customer_routes);
-
-
-// Routes for public users
 app.use("/", genl_routes);
 
-
-// Server port
+// Start server
 const PORT = 5000;
 
 app.listen(PORT, () => {
